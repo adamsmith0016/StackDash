@@ -6,16 +6,25 @@ import zlib
 import time
 import gzip
 import requests
+from dateutil import parser
+#pip3 install python-dateutil
 # Ignore SSL certificate errors
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
-#in_date=input("Enter The 'Created Date' in the following format: ex: 01-01-01")
-#out_date=input("Enter the 'To Date'in the following format: ex: 01-31-19")
+in_date=input("Enter The 'From Created Date' in the following format: ex: Feb 12 2019 12:00AM:  ")
+out_date=input("Enter The 'TO Created Date' in the following format: ex: Feb 12 2019 12:00AM:   ")
 
-url= "https://api.stackexchange.com/2.2/questions?fromdate=1549785601&todate=1550106398&order=desc&sort=creation&tagged=azure-storage&site=stackoverflow"
+dt_from = parser.parse(in_date)
+dt_to = parser.parse(out_date)
+
+epoch_from = int(round(time.mktime(dt_from.timetuple())))
+epoch_from = str(epoch_from)
+epoch_to = int(round(time.mktime(dt_to.timetuple())))
+epoch_to=str(epoch_to)
+
+url= "https://api.stackexchange.com/2.2/questions?fromdate="+epoch_from+"&todate="+epoch_to+"&order=desc&sort=creation&tagged=azure-storage&site=stackoverflow"
 #headers = {'Accept-Encoding': 'gzip'}
-
 # PARAMETERS:
 # fromdate=
 # todate=
@@ -23,7 +32,6 @@ url= "https://api.stackexchange.com/2.2/questions?fromdate=1549785601&todate=155
 # sort=creation
 # tagged=azure-storage
 # site=stackoverflow
-
 # data =
 # info = json.loads(data)
 # print('Name:', info["name"])
@@ -32,9 +40,7 @@ url= "https://api.stackexchange.com/2.2/questions?fromdate=1549785601&todate=155
 # order=desc
 # site=stackoverflow
 
-
-
-    # url = serviceurl + urllib.parse.urlencode(parms)
+# url = serviceurl + urllib.parse.urlencode(parms)
 
 print('Retrieving', url)
 uh = urllib.request.urlopen(url, context=ctx) # opens link
@@ -63,21 +69,6 @@ for item in js["items"]:
         list_ansewered.append(item['link'])
         list_creation_ansewered.append(item["creation_date"])
 
-        #print("link",item['link'])
-        #print("Is Answered",item['is_answered'])
-    #elif item['is_answered'] == False and item["answer_count"] > 0 :
-    #    list_proposed.append(item['link'])
-        #print("ANSWERED:")
-        #list_ansewered.append(item['link'])
-
-        #print("link",item['link'])
-        #print("Is Answered",item['is_answered'])
-#    else: #item['is_answered'] == False and item["answer_count"] > 0 :
-        #print ("PROPOSED ANSWERS:")
-        #list_ansewered.append(item['link'])
-        #print("link",item['link'])
-        #print("Is Answered",item['is_answered'])
-        #print("Answer Count:",item["answer_count"])
 print("===========================================")
 print ("UNTOUCHED:")
 print("===========================================")
@@ -108,30 +99,4 @@ else:
     for link,date in zip(list_ansewered,list_creation_ansewered):
         date = datetime.fromtimestamp(date).strftime('%c')
         print('{} {}'.format(link, date))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#print('Retrieved', len(data), 'characters')
-
-
-#try:
-#js = json.loads(data)
-#except:
-    #js = None
-
-    #if not js or 'status' not in js or js['status'] != 'OK':
-    #    print('==== Failure To Retrieve ====')
-    #    print(data)
-    #    continue
 
