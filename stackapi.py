@@ -13,7 +13,7 @@ ctx.verify_mode = ssl.CERT_NONE
 #in_date=input("Enter The 'Created Date' in the following format: ex: 01-01-01")
 #out_date=input("Enter the 'To Date'in the following format: ex: 01-31-19")
 
-url= "https://api.stackexchange.com/2.2/questions?in_date=1548266733&todate=1549390104&order=desc&sort=creation&tagged=azure-storage&site=stackoverflow"
+url= "https://api.stackexchange.com/2.2/questions?fromdate=1549785601&todate=1550106398&order=desc&sort=creation&tagged=azure-storage&site=stackoverflow"
 #headers = {'Accept-Encoding': 'gzip'}
 
 # PARAMETERS:
@@ -43,10 +43,12 @@ data=data.decode() #decodes from bytes
 js = json.loads(data)
 #print(json.dumps(js, indent=4))
 
-list_ansewered = list()
-list_untouched = list()
-list_proposed = list()
-list_creation = list()
+list_ansewered = []
+list_untouched = []
+list_proposed = []
+list_creation = []
+list_creation_proposed=[]
+list_creation_ansewered=[]
 
 for item in js["items"]:
     if item['is_answered'] == False:
@@ -56,9 +58,11 @@ for item in js["items"]:
             list_creation.append(item["creation_date"])
         else:
             list_proposed.append(item['link'])
+            list_creation_proposed.append(item["creation_date"])
     else:
         list_ansewered.append(item['link'])
-#for testing:
+        list_creation_ansewered.append(item["creation_date"])
+
         #print("link",item['link'])
         #print("Is Answered",item['is_answered'])
     #elif item['is_answered'] == False and item["answer_count"] > 0 :
@@ -80,26 +84,33 @@ print("===========================================")
 if len(list_untouched)== 0:
     print("No threads are in untouched status")
 else:
-    for link in list_untouched:
-          for date in list_creation:
-              date = datetime.fromtimestamp(date).strftime('%c')
-              print("link:",link,"Creation Date:",date)
+    for link,date in zip(list_untouched, list_creation):
+        date = datetime.fromtimestamp(date).strftime('%c')
+        print('{} {}'.format(link, date))
+
 print("===========================================")
 print ("PROPOSED:")
 print("===========================================")
 if len(list_proposed)== 0:
     print("No threads are in PROPOSED ONLY status")
 else:
-    for link in list_proposed:
-        print (link)
+
+    for link,date in zip(list_proposed,list_creation_proposed):
+        date = datetime.fromtimestamp(date).strftime('%c')
+        print('{} {}'.format(link, date))
+
 print("===========================================")
 print("Answered: ")
 print("===========================================")
 if len(list_ansewered)== 0:
     print("No threads are in ANSWERED")
 else:
-    for link in list_ansewered:
-        print(link)
+    for link,date in zip(list_ansewered,list_creation_ansewered):
+        date = datetime.fromtimestamp(date).strftime('%c')
+        print('{} {}'.format(link, date))
+
+
+
 
 
 
