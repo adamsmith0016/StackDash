@@ -22,15 +22,20 @@ epoch_from = int(round(time.mktime(dt_from.timetuple())))
 epoch_from = str(epoch_from)
 epoch_to = int(round(time.mktime(dt_to.timetuple())))
 epoch_to=str(epoch_to)
+storageurls= []
+tag_list_storage=["azure-storage","azure-storage-queues","azure-blob-storage","azure-disk","azure-storage-emulator","azure-files"]
+for tag in tag_list_storage:
+    url= "https://api.stackexchange.com/2.2/questions?fromdate="+epoch_from+"&todate="+epoch_to+"&order=desc&sort=creation&tagged="+tag+"&site=stackoverflow"
+    storageurls.append(url)
 
-url= "https://api.stackexchange.com/2.2/questions?fromdate="+epoch_from+"&todate="+epoch_to+"&order=desc&sort=creation&tagged=azure-storage&site=stackoverflow"
 #headers = {'Accept-Encoding': 'gzip'}
+# all tags:
 # PARAMETERS:
 # fromdate=
 # todate=
 # order=desc
 # sort=creation
-# tagged=azure-storage
+# tagged=azure-storage, azure-storage-queues,azure-blob-storage, azure-disk,azure-storage-emulator,azure-files
 # site=stackoverflow
 # data =
 # info = json.loads(data)
@@ -41,62 +46,68 @@ url= "https://api.stackexchange.com/2.2/questions?fromdate="+epoch_from+"&todate
 # site=stackoverflow
 
 # url = serviceurl + urllib.parse.urlencode(parms)
+for url in storageurls:
+    #print('Retrieving', url)
+    divided = url.split("&")
+    #print (divided)
 
-print('Retrieving', url)
-uh = urllib.request.urlopen(url, context=ctx) # opens link
-data = zlib.decompress(uh.read(), 16+zlib.MAX_WBITS)#reads + decompresses content
-data=data.decode() #decodes from bytes
-js = json.loads(data)
+
+    uh = urllib.request.urlopen(url, context=ctx) # opens link
+    data = zlib.decompress(uh.read(), 16+zlib.MAX_WBITS)#reads + decompresses content
+    data=data.decode() #decodes from bytes
+    js = json.loads(data)
 #print(json.dumps(js, indent=4))
 
-list_ansewered = []
-list_untouched = []
-list_proposed = []
-list_creation = []
-list_creation_proposed=[]
-list_creation_ansewered=[]
+    list_ansewered = []
+    list_untouched = []
+    list_proposed = []
+    list_creation = []
+    list_creation_proposed=[]
+    list_creation_ansewered=[]
 
-for item in js["items"]:
-    if item['is_answered'] == False:
-        if item["answer_count"] == 0:
+    for item in js["items"]:
+        if item['is_answered'] == False:
+            if item["answer_count"] == 0:
         #print("NOT ANSWERED: UNTOUCHED:")
-            list_untouched.append(item['link'])
-            list_creation.append(item["creation_date"])
+                list_untouched.append(item['link'])
+                list_creation.append(item["creation_date"])
+            else:
+                list_proposed.append(item['link'])
+                list_creation_proposed.append(item["creation_date"])
         else:
-            list_proposed.append(item['link'])
-            list_creation_proposed.append(item["creation_date"])
+            list_ansewered.append(item['link'])
+            list_creation_ansewered.append(item["creation_date"])
+
+    print("\n" * 2)
+    print("==============",divided[4],"==============")
+    print("===========================================")
+    print ("UNTOUCHED:")
+    print("===========================================")
+    if len(list_untouched)== 0:
+        print("No threads are in untouched status")
     else:
-        list_ansewered.append(item['link'])
-        list_creation_ansewered.append(item["creation_date"])
+        for link,date in zip(list_untouched, list_creation):
+            date = datetime.fromtimestamp(date).strftime('%c')
+            print('{} {}'.format(link, date))
 
-print("===========================================")
-print ("UNTOUCHED:")
-print("===========================================")
-if len(list_untouched)== 0:
-    print("No threads are in untouched status")
-else:
-    for link,date in zip(list_untouched, list_creation):
-        date = datetime.fromtimestamp(date).strftime('%c')
-        print('{} {}'.format(link, date))
+    print("===========================================")
+    print ("PROPOSED:")
+    print("===========================================")
+    if len(list_proposed)== 0:
+        print("No threads are in PROPOSED ONLY status")
+    else:
 
-print("===========================================")
-print ("PROPOSED:")
-print("===========================================")
-if len(list_proposed)== 0:
-    print("No threads are in PROPOSED ONLY status")
-else:
+        for link,date in zip(list_proposed,list_creation_proposed):
+            date = datetime.fromtimestamp(date).strftime('%c')
+            print('{} {}'.format(link, date))
 
-    for link,date in zip(list_proposed,list_creation_proposed):
-        date = datetime.fromtimestamp(date).strftime('%c')
-        print('{} {}'.format(link, date))
-
-print("===========================================")
-print("Answered: ")
-print("===========================================")
-if len(list_ansewered)== 0:
-    print("No threads are in ANSWERED")
-else:
-    for link,date in zip(list_ansewered,list_creation_ansewered):
-        date = datetime.fromtimestamp(date).strftime('%c')
-        print('{} {}'.format(link, date))
+    print("===========================================")
+    print("Answered: ")
+    print("===========================================")
+    if len(list_ansewered)== 0:
+        print("No threads are in ANSWERED")
+    else:
+        for link,date in zip(list_ansewered,list_creation_ansewered):
+            date = datetime.fromtimestamp(date).strftime('%c')
+            print('{} {}'.format(link, date))
 
